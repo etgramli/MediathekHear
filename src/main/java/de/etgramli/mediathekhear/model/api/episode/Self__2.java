@@ -1,0 +1,7 @@
+package de.etgramli.mediathekhear.model.api.episode;
+
+public record Self__2(
+        String href,
+        String name,
+        boolean templated) {
+}
