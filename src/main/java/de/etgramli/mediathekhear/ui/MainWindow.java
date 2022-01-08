@@ -19,14 +19,13 @@ public class MainWindow extends JFrame {
     private static final int DEFAULT_WIDTH = 1280;
     private static final int DEFAULT_HEIGHT = 720;
 
-    public MainWindow(@Autowired @Nonnull final ProgramsetsTableModel programsetsTableModel) {
-        // Set title, size, close operation and layout
-        System.out.println("Row count: " + programsetsTableModel.getRowCount());
+    public MainWindow(@Autowired @Nonnull final EpisodeTableModel tableModel) {
+        setTitle("MediathekHear");
         setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        final JTable podcastTable = new JTable(programsetsTableModel);
+        final JTable podcastTable = new JTable(tableModel);
         final TableRowSorter<TableModel> sorter = new TableRowSorter<>(podcastTable.getModel());
         sorter.setSortKeys(List.of(
                 new RowSorter.SortKey(0, SortOrder.ASCENDING),

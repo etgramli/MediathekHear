@@ -1,7 +1,6 @@
 package de.etgramli.mediathekhear.ui;
 
 import de.etgramli.mediathekhear.model.EpisodeDTO;
-import de.etgramli.mediathekhear.model.persistence.EpisodeEntity;
 import de.etgramli.mediathekhear.model.persistence.EpisodeRepository;
 import org.jetbrains.annotations.Nls;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +17,14 @@ public class EpisodeTableModel extends AbstractTableModel {
 
     @Autowired
     private EpisodeRepository repository;
-    private List<Long> ids;
+    private List<EpisodeDTO> episodes;
 
     @Override
     public int getRowCount() {
-        if (ids == null) {
-            ids = repository.findAll().stream().map(EpisodeEntity::getId).collect(Collectors.toList());
+        if (episodes == null) {
+            episodes = repository.findAll().stream().map(EpisodeDTO::of).collect(Collectors.toList());
         }
-        return ids.size();
+        return episodes.size();
     }
 
     @Override
@@ -57,11 +56,7 @@ public class EpisodeTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(final int row, final int column) {
-        if (row >= ids.size()) {
-            return null;
-        }
-        final long id = ids.get(row);
-        EpisodeDTO episode = repository.findById(id).map(EpisodeDTO::of).orElse(EpisodeDTO.EMPTY);
+        final EpisodeDTO episode = episodes.get(row);
         return switch (column) {
             case 0 -> episode.id();
             case 1 -> episode.title();

@@ -1,7 +1,6 @@
 package de.etgramli.mediathekhear.ui;
 
 import de.etgramli.mediathekhear.model.ProgramsetsDTO;
-import de.etgramli.mediathekhear.model.persistence.ProgramsetsEntity;
 import de.etgramli.mediathekhear.model.persistence.ProgramsetsRepository;
 import org.jetbrains.annotations.Nls;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,15 +15,15 @@ public class ProgramsetsTableModel extends AbstractTableModel {
     private static final String[] COLUMN_NAMES = {"Id", "Titel", "Anzahl Episoden", "Sender", "Zusammenfassung"};
 
     @Autowired
-    private ProgramsetsRepository programsetsRepo;
-    private List<Long> ids;
+    private ProgramsetsRepository repository;
+    private List<ProgramsetsDTO> programsets;
 
     @Override
     public int getRowCount() {
-        if (ids == null) {
-            ids = programsetsRepo.findAll().stream().map(ProgramsetsEntity::getId).collect(Collectors.toList());
+        if (programsets == null) {
+            programsets = repository.findAll().stream().map(ProgramsetsDTO::of).collect(Collectors.toList());
         }
-        return ids.size();
+        return programsets.size();
     }
 
     @Override
@@ -55,11 +54,10 @@ public class ProgramsetsTableModel extends AbstractTableModel {
 
     @Override
     public Object getValueAt(final int row, final int column) {
-        if (row >= ids.size()) {
-            return null;
+        if (programsets == null) {
+            programsets = repository.findAll().stream().map(ProgramsetsDTO::of).toList();
         }
-        long id = ids.get(row);
-        ProgramsetsDTO programset = programsetsRepo.findById(id).map(ProgramsetsDTO::of).orElse(ProgramsetsDTO.EMPTY);
+        final ProgramsetsDTO programset = programsets.get(row);
         return switch (column) {
             case 0 -> programset.id();
             case 2-> programset.numberOfElements();
