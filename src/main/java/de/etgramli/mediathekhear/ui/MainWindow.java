@@ -7,10 +7,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 import javax.swing.*;
-import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.util.List;
 
 @Component
 @SpringBootApplication
@@ -26,12 +24,7 @@ public class MainWindow extends JFrame {
         setLayout(new BorderLayout());
 
         final JTable podcastTable = new JTable(tableModel);
-        final TableRowSorter<TableModel> sorter = new TableRowSorter<>(podcastTable.getModel());
-        sorter.setSortKeys(List.of(
-                new RowSorter.SortKey(0, SortOrder.ASCENDING),
-                new RowSorter.SortKey(1, SortOrder.DESCENDING)
-        ));
-        podcastTable.setRowSorter(sorter);
+        podcastTable.setRowSorter(new TableRowSorter<>(podcastTable.getModel()));
 
         final JScrollPane scrollPane = new JScrollPane(podcastTable);
         podcastTable.setFillsViewportHeight(true);
