@@ -2,6 +2,7 @@ package de.etgramli.mediathekhear;
 
 import de.etgramli.mediathekhear.model.EpisodeDTO;
 import de.etgramli.mediathekhear.model.ProgramsetsDTO;
+import de.etgramli.mediathekhear.model.api.programsets.MtProgramSet;
 import de.etgramli.mediathekhear.util.AudiothekUtils;
 import org.apache.commons.cli.*;
 import org.jetbrains.annotations.NotNull;
@@ -12,9 +13,7 @@ import javax.annotation.Nonnull;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.Collection;
 
 public final class CreateDataSql {
     private CreateDataSql() {}
@@ -43,8 +42,7 @@ public final class CreateDataSql {
         long programsetId = -1;
         try {
             if (testForHelp(args)) {
-                final HelpFormatter formatter = new HelpFormatter();
-                formatter.printHelp("java -jar ApiTest.jar", "Save programsets and episodes to SQL file.", options, "", true);
+                new HelpFormatter().printHelp("java -jar ApiTest.jar", "Save programsets and episodes to SQL file.", options, "", true);
                 return;
             }
             final CommandLine cmd = new DefaultParser().parse(options, args);
@@ -57,30 +55,19 @@ public final class CreateDataSql {
             logger.error("Error parsing command line arguments: ", e);
         }
 
-        final List<ProgramsetsDTO> programsets = AudiothekUtils.getProgramsets().stream()
-                .map(ProgramsetsDTO::of)
-                .sorted()
-                .toList();
-
         final StringBuilder dataSql = new StringBuilder();
 
-        programsets.stream()
-                .map(CreateDataSql::getProgramsetDbLine)
-                .forEach(dataSql::append);
+        for (MtProgramSet programSet : AudiothekUtils.getProgramsets()) {
+            final ProgramsetsDTO programsetsDTO = ProgramsetsDTO.of(programSet);
+            dataSql.append(getProgramsetDbLine(programsetsDTO));
 
-        final Set<Long> programsetIds = new HashSet<>();
-        if (programsetId != -1) {
-            programsetIds.add(programsetId);
-        } else if (allEpisodes) {
-            programsets.stream()
-                    .map(ProgramsetsDTO::id)
-                    .forEach(programsetIds::add);
-        }
-        for (long id : programsetIds) {
-            AudiothekUtils.getEpisodes(id).stream()
-                    .map(EpisodeDTO::of)
-                    .map(e -> getEpisodeDbLine(e, id))
-                    .forEach(dataSql::append);
+            final long currentId = programsetsDTO.id();
+            if (allEpisodes || currentId == programsetId) {
+                AudiothekUtils.getEpisodes(currentId).stream()
+                        .map(EpisodeDTO::of)
+                        .map(e -> getEpisodeDbLine(e, currentId))
+                        .forEachOrdered(dataSql::append);
+            }
         }
 
         try {
@@ -149,5 +136,9 @@ public final class CreateDataSql {
                 episode.sharingUrl(),
                 episode.squareImageUrl(),
                 programsetId);
+    }
+
+    private static void updateH2Programsets(@Nonnull final Collection<ProgramsetsDTO> programsets) {
+        // ToDo: delete(also episodes) if programset does not exist in collection, add if it does not exist in db
     }
 }
